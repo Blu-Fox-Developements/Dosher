@@ -1,4 +1,4 @@
-package com.example.dosher;
+package com.blufox.dosher;
 
 import androidx.fragment.app.FragmentActivity;
 

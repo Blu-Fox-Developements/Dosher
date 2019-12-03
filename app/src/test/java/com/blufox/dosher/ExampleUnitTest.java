@@ -1,4 +1,4 @@
-package com.example.dosher;
+package com.blufox.dosher;
 
 import org.junit.Test;
 
