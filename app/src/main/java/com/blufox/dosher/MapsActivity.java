@@ -1,19 +1,42 @@
 package com.blufox.dosher;
 
+import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentActivity;
 
+import android.Manifest;
+import android.app.Activity;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.icu.text.DateFormat;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.widget.Toast;
 
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
+
+    final private int REQUEST_COARSE_ACCESS = 123;
+    boolean permissionGranted = false;
+    LocationManager lm;
+    LocationListener locationListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,10 +62,110 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        locationListener = new MyLocationListener();
+
+        if(ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            !=PackageManager.PERMISSION_GRANTED
+            && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this, new String[]{
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+            }, REQUEST_COARSE_ACCESS);
+            return;
+            }else{
+                permissionGranted = true;
+        }
+        if (permissionGranted){
+            lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0 , locationListener);
+        }
     }
 
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults){
+        switch (requestCode) {
+            case REQUEST_COARSE_ACCESS:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                    permissionGranted = true;
+                    if(ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                            !=PackageManager.PERMISSION_GRANTED
+                            && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                            != PackageManager.PERMISSION_GRANTED){
+                        return;
+                    }
+                    lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
+                }else{
+                    permissionGranted = false;
+                }
+                break;
+            default:
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
+    }
+
+    public void onPause(){
+        super.onPause();
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED
+            && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED){
+        ActivityCompat.requestPermissions(this, new String[]{
+            Manifest.permission.ACCESS_COARSE_LOCATION
+            }, REQUEST_COARSE_ACCESS);
+            return;
+        }else{
+            permissionGranted = true;
+        }
+        if (permissionGranted){
+            lm.removeUpdates(locationListener);
+        }
+    }
+
+    private class MyLocationListener implements  LocationListener{
+
+        @Override
+        public void onLocationChanged(Location location) {
+            if (location != null){
+                Toast.makeText(getBaseContext(),
+                        "Current Location : Lat: " + location.getAltitude() + " lng: " + location.getLongitude(), Toast.LENGTH_LONG).show();
+                LatLng p = new LatLng(location.getLatitude(), location.getLongitude());
+                Geocoder geoCoder = new Geocoder(getBaseContext(), Locale.getDefault());
+                List<Address> addresses = null;
+                String add = "";
+                try{
+                    addresses = geoCoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+                    Address address = addresses.get(0);
+
+                    if (addresses.size() > 0){
+                        for (int i = 0; i <= address.getMaxAddressLineIndex(); i++)
+                            add += address.getAddressLine(i) + "\n";
+                    }
+
+                }catch (IOException e){
+                   e.printStackTrace();
+                }
+                mMap.addMarker(new MarkerOptions()
+                    .position(p)
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN))
+                    .title(add));
+
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(p, 12.0f));
+            }
+        }
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+
+        }
+
+        @Override
+        public void onProviderEnabled(String provider) {
+
+        }
+
+        @Override
+        public void onProviderDisabled(String provider) {
+
+        }
+    }
 }
