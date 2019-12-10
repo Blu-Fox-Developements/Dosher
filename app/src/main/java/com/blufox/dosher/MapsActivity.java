@@ -130,7 +130,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Toast.makeText(getBaseContext(),
                         "Current Location : Lat: " + location.getAltitude() + " lng: " + location.getLongitude(), Toast.LENGTH_LONG).show();
                 LatLng p = new LatLng(location.getLatitude(), location.getLongitude());
-                googlePlacesStringURL(location, 10000);
+                googlePlacesURL(location, 10000);
                 Geocoder geoCoder = new Geocoder(getBaseContext(), Locale.getDefault());
                 List<Address> addresses = null;
                 String add = "";
@@ -170,7 +170,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         }
 
-        private String googlePlacesStringURL(Location location, int radius){
+        private String googlePlacesURL(Location location, int radius){
             StringBuilder googleURL = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
             googleURL.append("location=" + location.getLatitude() + "," + location.getLongitude());
             googleURL.append("&radius=" + radius);
