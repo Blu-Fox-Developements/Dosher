@@ -130,7 +130,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Toast.makeText(getBaseContext(),
                         "Current Location : Lat: " + location.getAltitude() + " lng: " + location.getLongitude(), Toast.LENGTH_LONG).show();
                 LatLng p = new LatLng(location.getLatitude(), location.getLongitude());
-                googlePlacesURL(location, 10000);
                 Geocoder geoCoder = new Geocoder(getBaseContext(), Locale.getDefault());
                 List<Address> addresses = null;
                 String add = "";
