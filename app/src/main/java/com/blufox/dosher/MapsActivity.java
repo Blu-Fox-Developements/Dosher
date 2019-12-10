@@ -14,6 +14,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
@@ -129,6 +130,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Toast.makeText(getBaseContext(),
                         "Current Location : Lat: " + location.getAltitude() + " lng: " + location.getLongitude(), Toast.LENGTH_LONG).show();
                 LatLng p = new LatLng(location.getLatitude(), location.getLongitude());
+                googlePlacesStringURL(location, 10000);
                 Geocoder geoCoder = new Geocoder(getBaseContext(), Locale.getDefault());
                 List<Address> addresses = null;
                 String add = "";
@@ -166,6 +168,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         @Override
         public void onProviderDisabled(String provider) {
 
+        }
+
+        private String googlePlacesStringURL(Location location, int radius){
+            StringBuilder googleURL = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
+            googleURL.append("location=" + location.getLatitude() + "," + location.getLongitude());
+            googleURL.append("&radius=" + radius);
+            googleURL.append("&type=ATM");
+            googleURL.append("&sensor=true");
+            googleURL.append("&key=" + "AIzaSyCjULiUPHHRYx7gkvDN7x9JaX8AO3Mnz2w");
+
+            Log.d("GoogleMapsActivity", "URL = " + googleURL.toString());
+
+            return googleURL.toString();
         }
     }
 }
